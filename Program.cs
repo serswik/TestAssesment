@@ -21,6 +21,11 @@ namespace TestAssesment
                 DatabaseHelper.CreateIndexesIfNotExist(connection);
             }
 
+            // Note: To optimize and improve the program in the future, you can implement a mechanism to avoid adding duplicate rows
+            // when running the program multiple times. For instance, by checking a hash of the original file or comparing the data
+            // in the database with the file content. If there are no changes in the source file, simply display the row count
+            // in the database without adding new rows.
+
             var (uniqueTrips, duplicates) = CsvHelperUtility.ProcessDuplicatesAndSave(filePath);
             DatabaseHelper.SaveDataToDatabase(connectionString, uniqueTrips);
 
