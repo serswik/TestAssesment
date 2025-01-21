@@ -38,5 +38,38 @@ namespace TestAssesment.Helpers
 
             }
         }
+
+        // For large files, we would have to use SqlBulkCopy for bulk inserts instead of inserting one record at a time
+        public static void InsertRecord(TaxiTrip trip)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string insertQuery = @"
+                INSERT INTO TaxiTrips (
+                    tpep_pickup_datetime, tpep_dropoff_datetime, passenger_count, 
+                    trip_distance, store_and_fwd_flag, PULocationID, DOLocationID, 
+                    fare_amount, tip_amount
+                ) VALUES (
+                    @Pickup, @Dropoff, @PassengerCount, @TripDistance, @StoreFlag, 
+                    @PULocationID, @DOLocationID, @FareAmount, @TipAmount
+                )";
+
+                using (var command = new SqlCommand(insertQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@Pickup", trip.tpep_pickup_datetime);
+                    command.Parameters.AddWithValue("@Dropoff", trip.tpep_dropoff_datetime);
+                    command.Parameters.AddWithValue("@PassengerCount", trip.passenger_count);
+                    command.Parameters.AddWithValue("@TripDistance", trip.trip_distance);
+                    command.Parameters.AddWithValue("@StoreFlag", trip.store_and_fwd_flag);
+                    command.Parameters.AddWithValue("@PULocationID", trip.PULocationID);
+                    command.Parameters.AddWithValue("@DOLocationID", trip.DOLocationID);
+                    command.Parameters.AddWithValue("@FareAmount", trip.fare_amount);
+                    command.Parameters.AddWithValue("@TipAmount", trip.tip_amount);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }
