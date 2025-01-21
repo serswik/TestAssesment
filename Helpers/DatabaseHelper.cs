@@ -104,5 +104,40 @@ namespace TestAssesment.Helpers
             }
         }
 
+        public static void CreateIndexesIfNotExist(SqlConnection connection)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"
+                    IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PULocationID_TipAmount' AND object_id = OBJECT_ID('TaxiTrips'))
+                    BEGIN
+                        CREATE INDEX IX_PULocationID_TipAmount ON TaxiTrips (PULocationID, tip_amount);
+                    END
+
+                    IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_TripDistance' AND object_id = OBJECT_ID('TaxiTrips'))
+                    BEGIN
+                        CREATE INDEX IX_TripDistance ON TaxiTrips (trip_distance);
+                    END
+
+                    IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PickupDatetime' AND object_id = OBJECT_ID('TaxiTrips'))
+                    BEGIN
+                        CREATE INDEX IX_PickupDatetime ON TaxiTrips (tpep_pickup_datetime);
+                    END
+
+                    IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_DropoffDatetime' AND object_id = OBJECT_ID('TaxiTrips'))
+                    BEGIN
+                        CREATE INDEX IX_DropoffDatetime ON TaxiTrips (tpep_dropoff_datetime);
+                    END
+
+                    IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PULocationID' AND object_id = OBJECT_ID('TaxiTrips'))
+                    BEGIN
+                        CREATE INDEX IX_PULocationID ON TaxiTrips (PULocationID);
+                    END
+                    ";
+
+                command.ExecuteNonQuery();
+            }
+        }
+
     }
 }

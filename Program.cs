@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.SqlClient;
 using TestAssesment.Helpers;
 using TestAssesment.Models;
 
@@ -13,6 +14,12 @@ namespace TestAssesment
 
             DatabaseHelper.CreateDatabaseIfNotExists(connectionString);
             DatabaseHelper.CreateTableIfNotExists(connectionString);
+            
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                DatabaseHelper.CreateIndexesIfNotExist(connection);
+            }
 
             var (uniqueTrips, duplicates) = CsvHelperUtility.ProcessDuplicatesAndSave(filePath);
             DatabaseHelper.SaveDataToDatabase(connectionString, uniqueTrips);
