@@ -12,6 +12,7 @@ namespace TestAssesment.Helpers
     {
         private static string connectionString = "Server=(localdb)\\mssqllocaldb;Database=TaxiTripsDb;Trusted_Connection=True;MultipleActiveResultSets=true";
 
+        // Ensures the database exists by creating it if it doesn't already exist.
         public static void CreateDatabaseIfNotExists(string connectionString)
         {
             using (var connection = new SqlConnection(connectionString))
@@ -22,7 +23,7 @@ namespace TestAssesment.Helpers
                 command.ExecuteNonQuery();
             }
         }
-
+        // Ensures the TaxiTrips table exists by creating it if it doesn't already exist.
         public static void CreateTableIfNotExists(string connectionString)
         {
             using (var connection = new SqlConnection(connectionString))
@@ -52,6 +53,10 @@ namespace TestAssesment.Helpers
 
         // For processing large files (e.g., 10GB), the file can be split into chunks (e.g., 100,000 rows)
         // and processed sequentially using SqlBulkCopy for each chunk to avoid loading the entire file into memory.
+
+
+
+        //  Saves a list of TaxiTrip data to the database using SqlBulkCopy for efficient insertion.
         public static void SaveDataToDatabase(string connectionString, List<TaxiTrip> trips)
         {
             using (var connection = new SqlConnection(connectionString))
@@ -68,6 +73,7 @@ namespace TestAssesment.Helpers
             }
         }
 
+        // Converts a list of TaxiTrip objects into a DataTable for bulk insertion.
         private static System.Data.DataTable GenerateDataTable(List<TaxiTrip> trips)
         {
             var dataTable = new System.Data.DataTable();
@@ -90,6 +96,7 @@ namespace TestAssesment.Helpers
             return dataTable;
         }
 
+        // Displays the total number of rows in the TaxiTrips table.
         public static void DisplayRowCount(string connectiongString)
         {
             using (var connection = new SqlConnection(connectionString))
@@ -104,6 +111,7 @@ namespace TestAssesment.Helpers
             }
         }
 
+        // Creates necessary indexes on the TaxiTrips table to optimize query performance.
         public static void CreateIndexesIfNotExist(SqlConnection connection)
         {
             using (var command = connection.CreateCommand())
