@@ -1,7 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.SqlClient;
+﻿using System.Data.SqlClient;
 using TestAssesment.Helpers;
-using TestAssesment.Models;
 
 namespace TestAssesment
 {
