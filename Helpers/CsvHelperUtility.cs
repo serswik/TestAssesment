@@ -92,7 +92,7 @@ namespace TestAssesment.Helpers
                     return 0;
                 }
 
-                return base.ConvertFromString(text, row, memberMapData); // Иначе используем стандартную логику преобразования
+                return base.ConvertFromString(text, row, memberMapData);
             }
         }
     }
