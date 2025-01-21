@@ -10,7 +10,7 @@ namespace TestAssesment.Helpers
 {
     public static class DatabaseHelper
     {
-        private static string connectionString = "C:\\Users\\serge\\OneDrive\\Рабочий стол\\Studying\\sample-cab-data";
+        private static string connectionString = "Server=(localdb)\\mssqllocaldb;Database=DotNetStoreDb;Trusted_Connection=True;MultipleActiveResultSets=true";
 
         public static void CreateTable()
         {
