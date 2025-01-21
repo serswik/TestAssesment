@@ -7,11 +7,16 @@ using System.Threading.Tasks;
 using CsvHelper;
 using System.Globalization;
 using CsvHelper.Configuration;
+using System.Buffers.Text;
+using System.Diagnostics;
+using System.Xml;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TestAssesment.Helpers
 {
     public static class CsvHelperUtility
     {
+        // Reads a CSV file and maps its data to a list of TaxiTrip objects.
         public static List<TaxiTrip> ReadCsv(string filepath)
         {
             var trips = new List<TaxiTrip>();
@@ -41,7 +46,7 @@ namespace TestAssesment.Helpers
 
             return trips;
         }
-
+        // Processes a CSV file to separate unique trips and duplicates based on key criteria.
         public static (List<TaxiTrip> uniqueTrips, List<TaxiTrip> duplicates) ProcessDuplicatesAndSave(string filepath)
         {
             var allTrips = ReadCsv(filepath);
@@ -71,6 +76,7 @@ namespace TestAssesment.Helpers
             return (uniqueTrips, duplicates);
         }
 
+        // Writes duplicate trips to a separate CSV file for later review.
         private static void WriteDuplicatesToFile(List<TaxiTrip> duplicates)
         {
             string duplicatesFilePath = @"C:\Users\serge\OneDrive\Рабочий стол\Studying\TestAssesment\duplicates.csv";
@@ -83,6 +89,7 @@ namespace TestAssesment.Helpers
             Console.WriteLine("Duplicates were successfully saved in 'duplicates.csv' file.");
         }
 
+        // Custom converter to handle null or empty integer fields in CSV data.
         public class CustomInt32Converter : CsvHelper.TypeConversion.Int32Converter
         {
             public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
