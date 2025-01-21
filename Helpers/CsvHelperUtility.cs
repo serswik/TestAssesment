@@ -6,26 +6,42 @@ using TestAssesment.Models;
 using System.Threading.Tasks;
 using CsvHelper;
 using System.Globalization;
+using CsvHelper.Configuration;
 
 namespace TestAssesment.Helpers
 {
-    public static class CsvHelper
+    public static class CsvHelperUtility
     {
         public static List<TaxiTrip> ReadCsv(string filepath)
         {
             var trips = new List<TaxiTrip>();
-            using(var reader = new StreamReader(filepath))
-            using(var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
+                MissingFieldFound = null
+            };
+
+            using (var reader = new StreamReader(filepath))
+            using (var csv = new CsvReader(reader, config))
+            {
+                csv.Context.RegisterClassMap<TaxiTripMap>();
+
                 var records = csv.GetRecords<TaxiTrip>();
-                foreach(var record in records)
+
+                foreach (var record in records)
                 {
-                    record.store_and_fwd_flag = record.store_and_fwd_flag.Trim().ToUpper() == "Y" ? "Yes" : "No";
+                    if (record.passenger_count == null || string.IsNullOrWhiteSpace(record.passenger_count.ToString()))
+                    {
+                        record.passenger_count = 0;
+                    }
+
+                    record.store_and_fwd_flag = record.store_and_fwd_flag?.Trim().ToUpper() == "Y" ? "Yes" : "No";
                     record.tpep_pickup_datetime = DateTime.SpecifyKind(record.tpep_pickup_datetime, DateTimeKind.Utc);
                     record.tpep_dropoff_datetime = DateTime.SpecifyKind(record.tpep_dropoff_datetime, DateTimeKind.Utc);
+
                     trips.Add(record);
                 }
             }
+
             return trips;
         }
 
@@ -60,9 +76,9 @@ namespace TestAssesment.Helpers
 
         private static void WriteDuplicatesToFile(List<TaxiTrip> duplicates)
         {
-            string duplicatesFilePath = @"C:\Users\serge\OneDrive\Рабочий стол\Studying\duplicates.csv";
+            string duplicatesFilePath = @"C:\Users\serge\OneDrive\Рабочий стол\Studying\TestAssesment\duplicates.csv";
 
-            using(var writer = new StreamWriter(duplicatesFilePath))
+            using (var writer = new StreamWriter(duplicatesFilePath))
             using(var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
                 csv.WriteRecords(duplicates);

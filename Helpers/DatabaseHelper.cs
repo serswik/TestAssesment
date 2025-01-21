@@ -71,5 +71,20 @@ namespace TestAssesment.Helpers
                 }
             }
         }
+
+        public static int GetRowCount()
+        {
+            using(var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string countQuery = "SELECT COUNT(*) FROM TaxiTrips";
+
+                using (var command = new SqlCommand(countQuery, connection))
+                {
+                    var rowCount = (int)command.ExecuteScalar();
+                    return rowCount;
+                }
+            }
+        }
     }
 }
