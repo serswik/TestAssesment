@@ -17,7 +17,9 @@ namespace TestAssesment.Helpers
             var trips = new List<TaxiTrip>();
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                MissingFieldFound = null
+                MissingFieldFound = null,
+                IgnoreBlankLines = true,
+                BadDataFound = null
             };
 
             using (var reader = new StreamReader(filepath))
@@ -29,11 +31,6 @@ namespace TestAssesment.Helpers
 
                 foreach (var record in records)
                 {
-                    if (record.passenger_count == null || string.IsNullOrWhiteSpace(record.passenger_count.ToString()))
-                    {
-                        record.passenger_count = 0;
-                    }
-
                     record.store_and_fwd_flag = record.store_and_fwd_flag?.Trim().ToUpper() == "Y" ? "Yes" : "No";
                     record.tpep_pickup_datetime = DateTime.SpecifyKind(record.tpep_pickup_datetime, DateTimeKind.Utc);
                     record.tpep_dropoff_datetime = DateTime.SpecifyKind(record.tpep_dropoff_datetime, DateTimeKind.Utc);
@@ -84,6 +81,19 @@ namespace TestAssesment.Helpers
                 csv.WriteRecords(duplicates);
             }
             Console.WriteLine("Duplicates were successfully saved in 'duplicates.csv' file.");
+        }
+
+        public class CustomInt32Converter : CsvHelper.TypeConversion.Int32Converter
+        {
+            public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+            {
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    return 0;
+                }
+
+                return base.ConvertFromString(text, row, memberMapData); // Иначе используем стандартную логику преобразования
+            }
         }
     }
 }

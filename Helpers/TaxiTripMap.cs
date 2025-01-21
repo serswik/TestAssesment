@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static TestAssesment.Helpers.CsvHelperUtility;
 
 namespace TestAssesment.Helpers
 {
@@ -15,7 +16,7 @@ namespace TestAssesment.Helpers
         {
             Map(m => m.tpep_pickup_datetime).TypeConverter<CustomDateTimeConverter>();
             Map(m => m.tpep_dropoff_datetime).TypeConverter<CustomDateTimeConverter>();
-            Map(m => m.passenger_count);
+            Map(m => m.passenger_count).TypeConverter<CustomInt32Converter>();
             Map(m => m.trip_distance);
             Map(m => m.store_and_fwd_flag);
             Map(m => m.PULocationID);

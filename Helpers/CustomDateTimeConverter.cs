@@ -17,7 +17,12 @@ namespace TestAssesment.Helpers
     {
         public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
         {
-            if (DateTime.TryParseExact(text, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return null;
+            }
+
+            if (DateTime.TryParseExact(text, "MM/dd/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
             {
                 return dateTime;
             }

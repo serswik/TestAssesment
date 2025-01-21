@@ -8,19 +8,14 @@ namespace TestAssesment
     {
         static async Task Main(string[] args)
         {
+            string connectionString = "Server=(localdb)\\mssqllocaldb;Database=TaxiTripsDb;Trusted_Connection=True;MultipleActiveResultSets=true";
             string filePath = @"C:\Users\serge\OneDrive\Рабочий стол\Studying\TestAssesment\sample-cab-data.csv";
 
-            DatabaseHelper.CreateTable();
+            DatabaseHelper.CreateDatabaseIfNotExists(connectionString);
+            DatabaseHelper.CreateTableIfNotExists(connectionString);
 
             var (uniqueTrips, duplicates) = CsvHelperUtility.ProcessDuplicatesAndSave(filePath);
-
-            foreach(var trip in uniqueTrips)
-            {
-                DatabaseHelper.InsertRecord(trip);
-            }
-
-            int rowCount = DatabaseHelper.GetRowCount();
-            Console.WriteLine($"Count of rows in TaxiTrips table: {rowCount}");
+            DatabaseHelper.SaveDataToDatabase(connectionString, uniqueTrips);
 
             Console.WriteLine("Process completed.");
         }

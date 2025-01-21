@@ -10,81 +10,99 @@ namespace TestAssesment.Helpers
 {
     public static class DatabaseHelper
     {
-        private static string connectionString = "Server=(localdb)\\mssqllocaldb;Database=DotNetStoreDb;Trusted_Connection=True;MultipleActiveResultSets=true";
+        private static string connectionString = "Server=(localdb)\\mssqllocaldb;Database=TaxiTripsDb;Trusted_Connection=True;MultipleActiveResultSets=true";
 
-        public static void CreateTable()
-        {
-            using(var connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-                string createTableQuery = @"
-                IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='TaxiTrips' AND xtype='U')
-                CREATE TABLE TaxiTrips (
-                    tpep_pickup_datetime DATETIME NOT NULL,
-                    tpep_dropoff_datetime DATETIME NOT NULL,
-                    passenger_count INT NOT NULL,
-                    trip_distance FLOAT NOT NULL,
-                    store_and_fwd_flag NVARCHAR(3) NOT NULL,
-                    PULocationID INT NOT NULL,
-                    DOLocationID INT NOT NULL,
-                    fare_amount DECIMAL(10, 2) NOT NULL,
-                    tip_amount DECIMAL(10, 2) NOT NULL
-                )";
-
-                using (var command = new SqlCommand(createTableQuery, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-
-            }
-        }
-
-        // For large files, we would have to use SqlBulkCopy for bulk inserts instead of inserting one record at a time
-        public static void InsertRecord(TaxiTrip trip)
+        public static void CreateDatabaseIfNotExists(string connectionString)
         {
             using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
-                string insertQuery = @"
-                INSERT INTO TaxiTrips (
-                    tpep_pickup_datetime, tpep_dropoff_datetime, passenger_count, 
-                    trip_distance, store_and_fwd_flag, PULocationID, DOLocationID, 
-                    fare_amount, tip_amount
-                ) VALUES (
-                    @Pickup, @Dropoff, @PassengerCount, @TripDistance, @StoreFlag, 
-                    @PULocationID, @DOLocationID, @FareAmount, @TipAmount
-                )";
 
-                using (var command = new SqlCommand(insertQuery, connection))
-                {
-                    command.Parameters.AddWithValue("@Pickup", trip.tpep_pickup_datetime);
-                    command.Parameters.AddWithValue("@Dropoff", trip.tpep_dropoff_datetime);
-                    command.Parameters.AddWithValue("@PassengerCount", trip.passenger_count);
-                    command.Parameters.AddWithValue("@TripDistance", trip.trip_distance);
-                    command.Parameters.AddWithValue("@StoreFlag", trip.store_and_fwd_flag);
-                    command.Parameters.AddWithValue("@PULocationID", trip.PULocationID);
-                    command.Parameters.AddWithValue("@DOLocationID", trip.DOLocationID);
-                    command.Parameters.AddWithValue("@FareAmount", trip.fare_amount);
-                    command.Parameters.AddWithValue("@TipAmount", trip.tip_amount);
-
-                    command.ExecuteNonQuery();
-                }
+                var command = new SqlCommand("IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'TaxiTripsDb') CREATE DATABASE TaxiTripsDb;", connection);
+                command.ExecuteNonQuery();
             }
         }
 
-        public static int GetRowCount()
+        public static void CreateTableIfNotExists(string connectionString)
         {
-            using(var connection = new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
-                string countQuery = "SELECT COUNT(*) FROM TaxiTrips";
 
-                using (var command = new SqlCommand(countQuery, connection))
-                {
-                    var rowCount = (int)command.ExecuteScalar();
-                    return rowCount;
-                }
+                string createTableQuery = @"
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TaxiTrips')
+            BEGIN
+                CREATE TABLE TaxiTrips (
+                    tpep_pickup_datetime DATETIME,
+                    tpep_dropoff_datetime DATETIME,
+                    passenger_count INT,
+                    trip_distance FLOAT,
+                    store_and_fwd_flag NVARCHAR(10),
+                    PULocationID INT,
+                    DOLocationID INT,
+                    fare_amount DECIMAL(18, 2),
+                    tip_amount DECIMAL(18, 2)
+                );
+            END";
+
+                var command = new SqlCommand(createTableQuery, connection);
+                command.ExecuteNonQuery();
             }
         }
+
+        // For processing large files (e.g., 10GB), the file can be split into chunks (e.g., 100,000 rows)
+        // and processed sequentially using SqlBulkCopy for each chunk to avoid loading the entire file into memory.
+        public static void SaveDataToDatabase(string connectionString, List<TaxiTrip> trips)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (var bulkCopy = new SqlBulkCopy(connection))
+                {
+                    bulkCopy.DestinationTableName = "TaxiTrips";
+                    bulkCopy.WriteToServer(GenerateDataTable(trips));
+                }
+
+                DisplayRowCount(connectionString);
+            }
+        }
+
+        private static System.Data.DataTable GenerateDataTable(List<TaxiTrip> trips)
+        {
+            var dataTable = new System.Data.DataTable();
+
+            dataTable.Columns.Add("tpep_pickup_datetime", typeof(DateTime));
+            dataTable.Columns.Add("tpep_dropoff_datetime", typeof(DateTime));
+            dataTable.Columns.Add("passenger_count", typeof(int));
+            dataTable.Columns.Add("trip_distance", typeof(float));
+            dataTable.Columns.Add("store_and_fwd_flag", typeof(string));
+            dataTable.Columns.Add("PULocationID", typeof(int));
+            dataTable.Columns.Add("DOLocationID", typeof(int));
+            dataTable.Columns.Add("fare_amount", typeof(decimal));
+            dataTable.Columns.Add("tip_amount", typeof(decimal));
+
+            foreach (var trip in trips)
+            {
+                dataTable.Rows.Add(trip.tpep_pickup_datetime, trip.tpep_dropoff_datetime, trip.passenger_count, trip.trip_distance, trip.store_and_fwd_flag, trip.PULocationID, trip.DOLocationID, trip.fare_amount, trip.tip_amount);
+            }
+
+            return dataTable;
+        }
+
+        public static void DisplayRowCount(string connectiongString)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string countQuery = "SELECT COUNT(*) FROM TaxiTrips";
+                var countCommand = new SqlCommand(countQuery, connection);
+                int rowCount = (int)countCommand.ExecuteScalar();
+
+                Console.WriteLine($"Count of rows in TaxiTrips table: {rowCount}");
+            }
+        }
+
     }
 }
